@@ -1,0 +1,20 @@
+{
+  "name": "reusable-workflows-test",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "format-check": "echo format check",
+    "test": "echo test",
+    "build": "mkdir dist && echo build",
+    "test:e2e": "echo test e2e"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/moose96/public-reusable-workflows.git"
+  },
+  "private": true,
+  "dependencies": {
+    "noop": "^1.0.1"
+  }
+}

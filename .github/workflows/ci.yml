@@ -1,0 +1,79 @@
+name: Continuous Integration reusable workflow
+on:
+  workflow_call:
+    inputs:
+      is-workspace:
+        type: boolean
+        description: 'flag for workspace mode'
+        required: false
+        default: false
+      lint:
+        type: boolean
+        description: 'flag for turning on and off linting'
+        required: false
+        default: true
+      lint-command:
+        type: string
+        description: 'command for running linting'
+        required: false
+        default: format-check
+      unit:
+        type: boolean
+        description: 'flag for turning on and off unit testing'
+        required: false
+        default: true
+      unit-command:
+        type: string
+        description: 'command for running unit testing'
+        required: false
+        default: test
+      build:
+        type: boolean
+        description: 'flag for turning on and off build'
+        required: false
+        default: true
+      build-command:
+        type: string
+        description: 'command for running build'
+        required: false
+        default: build
+      e2e:
+        type: boolean
+        description: 'flag for turning on and off e2e testing'
+        required: false
+        default: true
+      e2e-command:
+        type: string
+        description: 'command for running e2e testing'
+        required: false
+        default: test:e2e
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+          submodules: true
+      - name: Setup tools
+        uses: moose96/public-reusable-workflows/.github/actions/setup@main
+      - name: Setup pnpm cmd with workspace
+        if: ${{ inputs.is-workspace }}
+        run: echo "PNPM_CMD=$PNPM_HOME/pnpm -r" >> $GITHUB_ENV
+      - name: Setup pnp cmd without workspace
+        if: ${{ !inputs.is-workspace }}
+        run: echo "PNPM_CMD=$PNPM_HOME/pnpm" >> $GITHUB_ENV
+      - name: Lint testing
+        if: ${{ inputs.lint }}
+        run: '$PNPM_CMD ${{ inputs.lint-command }}'
+      - name: Unit testing
+        if: ${{ inputs.unit }}
+        run: '$PNPM_CMD ${{ inputs.unit-command }}'
+      - name: Build
+        if: ${{ inputs.build }}
+        run: '$PNPM_CMD ${{ inputs.build-command }}'
+      - name: E2E testing
+        if: ${{ inputs.e2e }}
+        run: '$PNPM_CMD ${{ inputs.e2e-command }}'

@@ -1,0 +1,35 @@
+name: 'Setup tools'
+description: 'It setups tools like node, package manager and perform installation of project dependencies'
+inputs:
+  pnpm-version:
+    type: string
+    description: 'pnpm version to use'
+    required: false
+    default: latest
+
+runs:
+    using: 'composite'
+    steps:
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ inputs.pnpm-version }}
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'pnpm'
+      - name: Cache installed packages
+        uses: actions/cache@v4
+        with:
+          path: '**/node_modules'
+          key: ${{ runner.os }}-node-${{ hashFiles('**/pnpm-lock.yaml') }}
+      - name: Install dependencies
+        shell: bash
+        run: pnpm install --frozen-lockfile --prefer-offline
+      - name: Bootstrap project if needed
+        shell: bash
+        run: pnpm bootstrap || echo 'Skipping...'
+      - name: Add pnpm to PATH
+        shell: bash
+        run: echo $PNPM_HOME >> $GITHUB_PATH

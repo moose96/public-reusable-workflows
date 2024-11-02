@@ -1,0 +1,54 @@
+name: Release reusable workflow
+on:
+  workflow_call:
+    inputs:
+      release-as:
+        required: false
+        type: string
+      prerelease:
+        required: false
+        type: string
+      release-count:
+        required: false
+        type: string
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+          submodules: true
+      - name: Install commit-and-tag-version
+        run: npm install -g commit-and-tag-version
+      - name: Initialize mandatory git config
+        run: |
+          git config user.name "Release manager"
+          git config user.email noreply@github.com
+      - name: Add release-as option to commit-and-tag-version arguments
+        if: ${{ inputs.release-as }}
+        run: echo "COMMIT_AND_TAG_VERSION_ARGS=-r ${{ inputs.release-as }} " >> $GITHUB_ENV
+      - name: Add prerelease option to commit-and-tag-version arguments
+        if: ${{ inputs.prerelease }}
+        run: echo "COMMIT_AND_TAG_VERSION_ARGS=-p ${{ inputs.prerelease }} " >> $GITHUB_ENV
+      - name: Add release-count option to commit-and-tag-version arguments
+        if: ${{ inputs.release-count }}
+        run: echo "COMMIT_AND_TAG_VERSION_ARGS=--release-count ${{ inputs.release-count }} " >> $GITHUB_ENV
+      - name: Release
+        run: commit-and-tag-version ${{ env.COMMIT_AND_TAG_VERSION_ARGS }}
+      - name: Push changes
+        run: git push --all --follow-tags --no-verify
+      - name: Get latest tag
+        id: get-latest-tag
+        run: echo "LATEST_TAG=$(git describe --abbrev=0 --tags)" >> $GITHUB_OUTPUT
+      - name: Create release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ steps.get-latest-tag.outputs.LATEST_TAG }}
+          token: ${{ secrets.PAT }}
+          generateReleaseNotes: true
+          prerelease: ${{ inputs.prerelease }}

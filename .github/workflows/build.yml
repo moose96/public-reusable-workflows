@@ -1,0 +1,49 @@
+name: Reusable build workflow
+on:
+  workflow_call:
+    inputs:
+      is-workspace:
+        type: boolean
+        description: 'flag for workspace mode'
+        required: false
+        default: false
+      build-command:
+        type: string
+        description: 'command for running build'
+        required: false
+        default: build
+      env:
+        required: false
+        type: string
+        default: development
+      artifacts-path:
+        required: true
+        type: string
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      PUBLIC_APP_ENV: ${{ inputs.env }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+          submodules: true
+      - name: Setup tools
+        uses: moose96/public-reusable-workflows/.github/actions/setup@main
+      - name: Setup pnpm cmd with workspace
+        if: ${{ inputs.is-workspace }}
+        run: echo "PNPM_CMD=$PNPM_HOME/pnpm -r" >> $GITHUB_ENV
+      - name: Setup pnp cmd without workspace
+        if: ${{ !inputs.is-workspace }}
+        run: echo "PNPM_CMD=$PNPM_HOME/pnpm" >> $GITHUB_ENV
+      - name: Build
+        run: '$PNPM_CMD ${{ inputs.build-command }}'
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: bundle
+          retention-days: 1
+          path: ${{ inputs.artifacts-path }}

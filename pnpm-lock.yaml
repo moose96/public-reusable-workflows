@@ -1,0 +1,22 @@
+lockfileVersion: '9.0'
+
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+
+importers:
+
+  .:
+    dependencies:
+      noop:
+        specifier: ^1.0.1
+        version: 1.0.1
+
+packages:
+
+  noop@1.0.1:
+    resolution: {integrity: sha512-Ie26MApU6CpCVRyp1GHFSQsY+zKe3uUXqQnu6bW9dYO/Cb1cpp34nvfi69WHpMvxLeG3Bhu9YV9ItP8z5z1HCQ==}
+
+snapshots:
+
+  noop@1.0.1: {}
